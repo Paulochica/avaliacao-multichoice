@@ -75,7 +75,7 @@ const App: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-indigo-700 font-bold text-xl">
             <Terminal size={24} />
-            <span>TechQuiz<span className="text-slate-800">AI</span></span>
+            <span>TechMzungu<span className="text-slate-800">AI</span></span>
           </div>
           {view === 'quiz' && (
             <div className="flex items-center gap-4 text-sm font-medium text-slate-500">
@@ -143,7 +143,7 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-6 text-center text-slate-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} TechQuiz AI. Powered by Google Gemini.</p>
+        <p>&copy; {new Date().getFullYear()} TechMzungu AI. Powered by Google Gemini.</p>
       </footer>
     </div>
   );
