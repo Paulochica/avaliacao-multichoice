@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 // --- Data ---
 const Category = {
   WEB2: 'Web 2.0 Concepts',
@@ -61,8 +59,7 @@ let currentState = {
   currentQuestionIndex: 0,
   userAnswers: [],
   selectedOptionId: null,
-  isConfirmed: false,
-  aiExplanation: null
+  isConfirmed: false
 };
 
 // --- DOM Elements ---
@@ -80,10 +77,6 @@ const elements = {
   questionCounter: document.getElementById('question-counter'),
   progressBarFill: document.getElementById('progress-bar-fill'),
   quizProgressContainer: document.getElementById('quiz-progress-container'),
-  explanationContainer: document.getElementById('explanation-container'),
-  aiExplanationText: document.getElementById('ai-explanation-text'),
-  explainAiBtn: document.getElementById('explain-ai-btn'),
-  aiLoading: document.getElementById('ai-loading'),
   finalScorePct: document.getElementById('final-score-pct'),
   finalScoreRaw: document.getElementById('final-score-raw'),
   categoryStatsContainer: document.getElementById('category-stats-container'),
@@ -154,7 +147,6 @@ const renderQuestion = () => {
 
   elements.confirmBtn!.classList.remove('hidden');
   elements.nextBtn!.classList.add('hidden');
-  elements.explanationContainer!.classList.add('hidden');
 };
 
 const confirmAnswer = () => {
@@ -204,45 +196,6 @@ const confirmAnswer = () => {
   elements.confirmBtn!.classList.add('hidden');
   elements.nextBtn!.classList.remove('hidden');
   elements.nextBtn!.innerText = currentState.currentQuestionIndex === QUESTIONS.length - 1 ? 'Ver Resultados' : 'Próxima Pergunta';
-  elements.explanationContainer!.classList.remove('hidden');
-  elements.aiExplanationText!.classList.add('hidden');
-  elements.explainAiBtn!.classList.remove('hidden');
-};
-
-const getAIExplanation = async () => {
-  const apiKey = process.env.API_KEY || '';
-  if (!apiKey) {
-    alert("API Key não configurada.");
-    return;
-  }
-
-  elements.explainAiBtn!.classList.add('hidden');
-  elements.aiLoading!.classList.remove('hidden');
-
-  const question = QUESTIONS[currentState.currentQuestionIndex];
-  const correctOptText = question.options.find(o => o.id === question.correctAnswerId)?.text;
-  const userOptText = question.options.find(o => o.id === currentState.selectedOptionId)?.text;
-
-  const prompt = `
-    Explique brevemente (máximo 2 frases) em Português por que a resposta correta para a pergunta "${question.text}" é "${correctOptText}".
-    ${currentState.selectedOptionId !== question.correctAnswerId ? `O usuário escolheu incorretamente "${userOptText}".` : 'O usuário acertou.'}
-  `;
-
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-    });
-    
-    elements.aiExplanationText!.innerText = response.text || "Sem explicação disponível.";
-    elements.aiExplanationText!.classList.remove('hidden');
-  } catch (err) {
-    elements.aiExplanationText!.innerText = "Erro ao carregar explicação da IA.";
-    elements.aiExplanationText!.classList.remove('hidden');
-  } finally {
-    elements.aiLoading!.classList.add('hidden');
-  }
 };
 
 const renderResults = () => {
@@ -333,10 +286,6 @@ elements.nextBtn!.onclick = () => {
     renderResults();
     switchView('results');
   }
-};
-
-elements.explainAiBtn!.onclick = () => {
-  getAIExplanation();
 };
 
 elements.restartBtn!.onclick = () => {
