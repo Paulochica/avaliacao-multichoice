@@ -1,5 +1,5 @@
 {
   "name": "TechMzungu AI",
-  "description": "An interactive technical quiz covering Web 2.0, Networking, HTML/CSS, and JavaScript. Features AI-powered answer explanations using Gemini.",
+  "description": "Um quiz técnico interativo sobre Web 2.0, Redes, HTML/CSS e JavaScript com explicações impulsionadas por IA.",
   "requestFramePermissions": []
 }

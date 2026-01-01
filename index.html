@@ -1,28 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="pt-br">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TechMzungu AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .progress-bar { transition: width 0.5s ease-out; }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
   }
 }
 </script>
 </head>
-  <body class="bg-slate-50 text-slate-900">
-    <div id="root"></div>
-  </body>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-indigo-700 font-bold text-xl">
+                <i data-lucide="terminal" class="w-6 h-6"></i>
+                <span>TechMzungu<span class="text-slate-800">AI</span></span>
+            </div>
+            <div id="quiz-progress-container" class="hidden flex items-center gap-4 text-sm font-medium text-slate-500">
+                <span class="hidden sm:inline" id="question-counter">Questão 1 de 40</span>
+                <div class="w-24 md:w-48 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="progress-bar-fill" class="h-full bg-indigo-600 progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-container" class="flex-1 flex flex-col items-center justify-center p-4">
+        
+        <!-- Welcome View -->
+        <div id="welcome-view" class="text-center max-w-2xl animate-fadeIn">
+            <div class="flex justify-center gap-6 mb-8 text-slate-300">
+                <i data-lucide="book-open" class="w-12 h-12 text-blue-500"></i>
+                <i data-lucide="layers" class="w-12 h-12 text-indigo-500"></i>
+                <i data-lucide="code" class="w-12 h-12 text-purple-500"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                Teste seus conhecimentos em <br/>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Desenvolvimento Web
+                </span>
+            </h1>
+            <p class="text-lg text-slate-600 mb-10 leading-relaxed">
+                40 questões cobrindo Web 2.0, Redes (HTTP, TCP/IP), HTML5, CSS3 e JavaScript.
+                Receba explicações instantâneas impulsionadas por IA para aprofundar seu aprendizado.
+            </p>
+            <button id="start-btn" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold rounded-xl shadow-xl shadow-indigo-200 transition-all transform hover:-translate-y-1 active:translate-y-0">
+                Iniciar Quiz
+            </button>
+        </div>
+
+        <!-- Quiz View (Hidden by default) -->
+        <div id="quiz-view" class="hidden w-full max-w-2xl animate-fadeIn">
+            <div id="quiz-card" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
+                <div class="flex justify-between items-start mb-6">
+                    <span id="question-category" class="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide bg-indigo-50 text-indigo-600 uppercase">
+                        CATEGORIA
+                    </span>
+                </div>
+
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-snug">
+                    Texto da pergunta aqui?
+                </h2>
+
+                <div id="options-container" class="space-y-3 mb-8">
+                    <!-- Options injected here -->
+                </div>
+
+                <!-- AI Explanation Section -->
+                <div id="explanation-container" class="hidden mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-center gap-2 mb-2">
+                        <button id="explain-ai-btn" class="flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <i data-lucide="brain-circuit" class="w-4 h-4 mr-2"></i>
+                            Explicar com IA (Gemini)
+                        </button>
+                    </div>
+                    <div id="ai-loading" class="hidden flex items-center text-slate-500 text-sm mt-2">
+                        <i data-lucide="loader-2" class="animate-spin mr-2 h-4 w-4"></i> Consultando modelo Gemini...
+                    </div>
+                    <p id="ai-explanation-text" class="hidden text-sm text-slate-700 leading-relaxed mt-2 border-t pt-2 border-slate-200">
+                        Explicação aqui...
+                    </p>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-100">
+                    <button id="confirm-btn" disabled class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95">
+                        Confirmar Resposta
+                    </button>
+                    <button id="next-btn" class="hidden px-6 py-3 bg-slate-900 text-white font-semibold rounded-lg shadow-md hover:bg-slate-800 transition-all transform active:scale-95 flex items-center">
+                        Próxima Pergunta
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results View (Hidden by default) -->
+        <div id="results-view" class="hidden w-full max-w-4xl animate-fadeIn">
+            <div class="text-center mb-12">
+                <div class="inline-block p-4 rounded-full bg-slate-100 mb-4">
+                    <i data-lucide="trophy" id="result-trophy" class="w-12 h-12 text-indigo-600"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Quiz Completado!</h2>
+                <p class="text-slate-500">Aqui está o resumo do seu desempenho.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                    <span class="text-slate-400 font-medium text-sm uppercase tracking-wider mb-2">Pontuação Final</span>
+                    <span id="final-score-pct" class="text-5xl font-bold text-indigo-600">0%</span>
+                    <span id="final-score-raw" class="text-sm text-slate-400 mt-2">0 de 40 corretas</span>
+                </div>
+
+                <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-4 flex items-center">
+                        <i data-lucide="target" class="w-5 h-5 mr-2 text-indigo-500"></i> Desempenho por Categoria
+                    </h3>
+                    <div id="category-stats-container" class="space-y-4">
+                        <!-- Category bars injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+                <div class="p-6 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-slate-700">Revisão Detalhada</h3>
+                </div>
+                <div id="review-list" class="max-h-96 overflow-y-auto p-0">
+                    <!-- Review items injected here -->
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button id="restart-btn" class="flex items-center px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
+                    <i data-lucide="rotate-ccw" class="mr-2 w-5 h-5"></i> Tentar Novamente
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center text-slate-400 text-sm">
+        <p>&copy; <span id="current-year"></span> TechMzungu AI.</p>
+    </footer>
+
+    <!-- Scripts are handled by index.tsx -->
+    <script type="module" src="./index.tsx"></script>
+</body>
 </html>

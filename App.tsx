@@ -143,7 +143,7 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-6 text-center text-slate-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} TechMzungu AI. Powered by Google Gemini.</p>
+        <p>&copy; {new Date().getFullYear()} TechMzungu AI.</p>
       </footer>
     </div>
   );
